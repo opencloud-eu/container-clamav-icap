@@ -1,0 +1,6 @@
+#!/bin/bash
+
+docker network create --driver bridge icap-clamav || true
+
+docker run -d --name clamav --network icap-clamav clamav/clamav:1.0.1-1 || docker run -d --network icap-clamav clamav/clamav:1.0.1-1
+docker run -d --name icap   --network icap-clamav swp/c-icap            || docker run -d --network icap-clamav swp/c-icap
