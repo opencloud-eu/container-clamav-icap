@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -e
+
+# This script uses just Docker to run two tests on a c-icap-clamav container to
+# check if virus detection via ICAP works. A clamav container downloads current
+# virus
+
+
+
+CICAP_CONTAINER_NAME=c-icap-clamav
+TEST_CONTAINER_TAG=c-icap-clamav-test
+CLAMAV_DB="$(pwd)/clamav-db"
+
+
+# checking if the c-icap-clamav image is available
+if ! docker image inspect "${CICAP_CONTAINER_NAME}" &> /dev/null
+then
+  echo "docker image ${CICAP_CONTAINER_NAME} not available locally, maybe it was not already built?"
+  exit 1
+fi
+
+# creating the directory that is used for the virus-db volume
+if ! [ -d "${CLAMAV_DB}" ]
+then
+  mkdir -p "${CLAMAV_DB}"
+  chmod 777 "${CLAMAV_DB}"
+fi
+
+# starting the clamav container that starts downloading the virus-db
+docker run --name clamav -d -v "${CLAMAV_DB}":/var/lib/clamav clamav/clamav || true
+
+# wainting until db is ready
+while ! [ -e "${CLAMAV_DB}"/main.cvd ]
+do
+  sleep 2
+  echo "waiting until clamav has downloaded its db ..."
+done
+
+# as soon as the db is downloaded, a c-icap container is started
+docker run --name "${CICAP_CONTAINER_NAME}" -d -v "${CLAMAV_DB}":/var/lib/clamav c-icap-clamav || true
+
+# the image for a test-client container is built
+docker build -t "${TEST_CONTAINER_TAG}" -f - . << EOF
+FROM debian:bullseye-slim
+RUN apt-get update && apt-get install -y --no-install-recommends c-icap curl ca-certificates
+RUN echo "this is no virus" >> /no-virus.txt \
+  && curl https://secure.eicar.org/eicar.com >> /eicar.txt
+EOF
+
+# the IP address of the c-icap container is gathered
+CICAP_IP=$(docker inspect "${CICAP_CONTAINER_NAME}" | grep '"IPAddress"' | awk -F '"' '{print $4}' | uniq)
+echo "IP of c-icap container: ${CICAP_IP}"
+
+# a no-virus test is performed
+echo -e "\ntesting no-virus content --------------------------------------------------"
+docker run "${TEST_CONTAINER_TAG}" c-icap-client -v -f /no-virus.txt -i "${CICAP_IP}" -s avscan
+
+# the eicar test is performed
+echo -e "\ntesting virus content -----------------------------------------------------"
+docker run "${TEST_CONTAINER_TAG}" c-icap-client -v -f /eicar.txt -i "${CICAP_IP}" -s avscan

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t swp/c-icap .
+docker build -t c-icap-clamav .

@@ -1,6 +1,7 @@
 FROM debian:bullseye-slim
 
-RUN mkdir -p /var/lib/clamav/
+RUN /bin/bash -c set -eux && mkdir -p /var/lib/clamav/ \
+    && chmod 777 /var/lib/clamav/
 VOLUME /var/lib/clamav
 
 RUN /bin/bash -c set -eux && apt-get update \
@@ -13,7 +14,7 @@ RUN /bin/bash -c set -eux && apt-get update \
 
 RUN /bin/bash -c set -eux && usermod -g c-icap c-icap \
     && mkdir -p /var/run/c-icap \
-    && chown -R c-icap.c-icap /var/run/c-icap/ \
+    && chown -R c-icap.c-icap /var/run/c-icap/ /var/lib/clamav/ \
     && rm /etc/c-icap/clamd_mod.conf
 
 ADD --chown=c-icap:c-icap config/c-icap.conf /etc/c-icap/c-icap.conf
