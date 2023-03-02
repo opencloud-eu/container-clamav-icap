@@ -3,9 +3,12 @@
 set -e
 
 # This script uses just Docker to run two tests on a c-icap-clamav container to
-# check if virus detection via ICAP works. A clamav container downloads current
-# virus
-
+# check if virus detection via ICAP works.
+# A clamav container downloads current virus database that is shared via volume
+# with the c-icap-clamav container.
+# A third container uses c-icap-client to test the c-icap-server. It sends two
+# files to the c-ica-server: one containing no-virus content and the second
+# containing the eicar test file.
 
 
 CICAP_CONTAINER_NAME=c-icap-clamav
@@ -30,7 +33,7 @@ fi
 # starting the clamav container that starts downloading the virus-db
 docker run --name clamav -d -v "${CLAMAV_DB}":/var/lib/clamav clamav/clamav || true
 
-# wainting until db is ready
+# waiting until db is ready
 while ! [ -e "${CLAMAV_DB}"/main.cvd ]
 do
   sleep 2
