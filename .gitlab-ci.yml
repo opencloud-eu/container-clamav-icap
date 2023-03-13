@@ -6,7 +6,7 @@ stages:
 variables:
   IMAGE_VERSION:
     description: "Version the built image will be tagged with."
-    value: "1.0.0"
+    value: "1.0.4"
 
 build:
   image:
