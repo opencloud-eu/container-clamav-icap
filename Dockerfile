@@ -1,28 +1,64 @@
-FROM debian:bullseye-slim
+# SPDX-FileCopyrightText: 2023 Bundesministerium des Innern und für Heimat, PG ZenDiS "Projektgruppe für Aufbau ZenDiS"
+# SPDX-License-Identifier: Apache-2.0
+FROM external-registry.souvap-univention.de/sovereign-workplace/alpine:3.18.3
 
-RUN /bin/bash -c set -eux && mkdir -p /var/lib/clamav/ \
-    && chmod 777 /var/lib/clamav/
-VOLUME /var/lib/clamav
+ENV TZ Etc/UTC
 
-RUN /bin/bash -c set -eux && apt-get update \
-    && apt-get install -y --no-install-recommends \
-    c-icap \
-    ca-certificates \
-    clamav \
-    libc-icap-mod-virus-scan \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /src
 
-RUN /bin/bash -c set -eux && usermod -g c-icap c-icap \
-    && mkdir -p /run/c-icap/ \
-    && chown -R c-icap.c-icap /run/c-icap/ /var/lib/clamav/ \
-    && rm /etc/c-icap/clamd_mod.conf
+ARG ICAP_ARTIFACT=https://netcologne.dl.sourceforge.net/project/c-icap/c-icap/0.5.x/c_icap-0.5.10.tar.gz
+ARG ICAP_MODULES_ARTIFACT=https://netcologne.dl.sourceforge.net/project/c-icap/c-icap-modules/0.5.x/c_icap_modules-0.5.5.tar.gz
 
-ADD --chown=c-icap:c-icap config/c-icap.conf /etc/c-icap/c-icap.conf
-ADD --chown=c-icap:c-icap config/virus_scan.conf /etc/c-icap/virus_scan.conf
-ADD --chown=c-icap:c-icap config/clamav_mod.conf /etc/c-icap/clamav_mod.conf
-ADD entrypoint.sh /entrypoint.sh
+# hadolint ignore=DL3008  We want the latest stable versions
+RUN apk update && apk upgrade \
+ && apk add --no-cache \
+        make \
+        cmake \
+        g++ \
+        wget \
+        tzdata \
+        file \
+        zlib-dev \
+        zlib \
+        bzip2-dev \
+        libbz2 \
+        brotli-dev \
+        brotli \
+        bind-tools \
+        sed \
+ # Download ICAP
+ && wget -q ${ICAP_ARTIFACT} -O icap.tar.gz \
+ && tar -xf icap.tar.gz -C /src --strip-components=1 \
+ # Build ICAP
+ && ./configure --prefix=/var/lib/clamav \
+ && make -s \
+ && make install \
+ # Remove src
+ && rm -rf /src/* \
+ # Download ICAP Modules
+ && wget -q ${ICAP_MODULES_ARTIFACT} -O icap-modules.tar.gz \
+ && tar -xf icap-modules.tar.gz -C /src --strip-components=1 \
+ # Build ICAP Modules
+ && ./configure --with-c-icap=/var/lib/clamav --prefix=/var/lib/clamav \
+ && make -s \
+ && make install \
+ # Remove src
+ && rm -rf /src/* \
+ # Create user
+ && addgroup -S "clamav" \
+ && adduser -D -G "clamav" -h "/var/lib/clamav" -s "/bin/false" -u 100 -S "clamav" \
+ && chown -R clamav:clamav /var/lib/clamav \
+ # Remove builder tools
+ && apk del \
+    make \
+    cmake \
+    g++ \
+    wget \
+    zlib-dev \
+    brotli-dev \
+    bzip2-dev \
+    apk-tools
 
-USER c-icap:c-icap
-CMD ["/bin/bash"]
 EXPOSE 1344
-ENTRYPOINT /entrypoint.sh
+
+CMD [ "/var/lib/clamav/bin/c-icap", "-N"]

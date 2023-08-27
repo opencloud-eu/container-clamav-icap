@@ -1,28 +1,21 @@
+# SPDX-FileCopyrightText: 2023 Bundesministerium des Innern und für Heimat, PG ZenDiS "Projektgruppe für Aufbau ZenDiS"
+# SPDX-License-Identifier: Apache-2.0
 ---
+include:
+  project: "souvap/tooling/gitlab-config"
+  ref: "main"
+  file:
+    - "ci/common/lint.yml"
+    - "ci/container/container-build.yml"
 
 stages:
+  - ".pre"
+  - "lint"
   - "build"
+  - ".post"
 
-variables:
-  IMAGE_VERSION:
-    description: "Version the built image will be tagged with."
-    value: "1.0.4"
+container-build:
+  variables:
+    BUILD_DESTINATION: "${CI_REGISTRY_IMAGE}:0.5.10"
 
-build:
-  image:
-    name: "gcr.io/kaniko-project/executor:v1.8.1-debug"
-    entrypoint: [""]
-  before_script:
-    - "mkdir -p /kaniko/.docker"
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"},\"$CI_DEPENDENCY_PROXY_SERVER\":{\"auth\":\"$(printf "%s:%s" ${CI_DEPENDENCY_PROXY_USER} "${CI_DEPENDENCY_PROXY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-  script:
-    - >-
-      /kaniko/executor
-      --context ${CI_PROJECT_DIR}
-      --dockerfile ${CI_PROJECT_DIR}/Dockerfile
-      --destination ${CI_REGISTRY_IMAGE}/c-icap-clamav:${IMAGE_VERSION}
-  stage: "build"
-  tags:
-    - "docker"
-  only:
-    - "web"
+...
