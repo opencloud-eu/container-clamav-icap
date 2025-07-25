@@ -1,13 +1,17 @@
 # SPDX-FileCopyrightText: 2023 Bundesministerium des Innern und für Heimat, PG ZenDiS "Projektgruppe für Aufbau ZenDiS"
 # SPDX-License-Identifier: Apache-2.0
-FROM external-registry.souvap-univention.de/sovereign-workplace/alpine:3.18.3
+FROM external-registry.souvap-univention.de/sovereign-workplace/alpine:3.22.1
 
-ENV TZ Etc/UTC
+ENV TZ=Etc/UTC
 
 WORKDIR /src
 
-ARG ICAP_ARTIFACT=https://netcologne.dl.sourceforge.net/project/c-icap/c-icap/0.5.x/c_icap-0.5.10.tar.gz
-ARG ICAP_MODULES_ARTIFACT=https://netcologne.dl.sourceforge.net/project/c-icap/c-icap-modules/0.5.x/c_icap_modules-0.5.5.tar.gz
+# Version of Clamav ICAP server
+# renovate: datasource=github-tags depName=c-icap/c-icap-server
+ARG VERSION=C_ICAP_0.6.4
+
+ARG ICAP_ARTIFACT=https://netcologne.dl.sourceforge.net/project/c-icap/c-icap/0.6.x/c_icap-${VERSION#C_ICAP_}.tar.gz
+ARG ICAP_MODULES_ARTIFACT=https://netcologne.dl.sourceforge.net/project/c-icap/c-icap-modules/0.5.x/c_icap_modules-0.5.7.tar.gz
 
 # hadolint ignore=DL3008  We want the latest stable versions
 RUN apk update && apk upgrade \
