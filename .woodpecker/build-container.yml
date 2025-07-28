@@ -1,0 +1,83 @@
+---
+when:
+  - event: [ push , manual ]
+    branch: main
+  - event: [ pull_request ]
+
+steps:
+  - image: woodpeckerci/plugin-docker-buildx:latest
+    name: dryrun
+    settings:
+      # renovate: datasource=github-tags depName=c-icap/c-icap-server extractVersion=^C_ICAP_(?<version>.*)$
+      tags:
+        - 0.6.4
+        - latest
+      dockerfile: Dockerfile
+      dry_run: true
+      http_proxy:
+        from_secret: ci_http_proxy
+      https_proxy:
+        from_secret: ci_http_proxy
+      platforms: linux/amd64
+      pull_image: false
+      repo: opencloudeu/clamav-icap,quay.io/opencloudeu/clamav-icap
+    when:
+      - event: pull_request
+
+  - image: woodpeckerci/plugin-docker-buildx:latest
+    name: build-and-push
+    settings:
+      # renovate: datasource=github-tags depName=c-icap/c-icap-server extractVersion=^C_ICAP_(?<version>.*)$
+      tags:
+        - 0.6.4
+        - latest
+      dockerfile: Dockerfile
+      http_proxy:
+        from_secret: ci_http_proxy
+      https_proxy:
+        from_secret: ci_http_proxy
+      platforms: linux/amd64,linux/arm64
+      pull_image: false
+      logins:
+        - registry: https://index.docker.io/v1/
+          username:
+            from_secret: docker_username
+          password:
+            from_secret: docker_password
+        - registry: https://quay.io
+          username:
+            from_secret: quay_username
+          password:
+            from_secret: quay_password
+      repo: opencloudeu/clamav-icap,quay.io/opencloudeu/clamav-icap
+    when:
+      - event: [ push , manual ]
+        branch: main
+
+  - image: chko/docker-pushrm:1
+    name: push-readme-dockerhub
+    environment:
+      DOCKER_USER:
+        from_secret: docker_username
+      DOCKER_PASS:
+        from_secret: docker_password
+      PUSHRM_TARGET: opencloudeu/clamav-icap
+      PUSHRM_SHORT: Docker images for Clamav ICAP
+      PUSHRM_FILE: README.md
+    depends_on: build-and-push
+    when:
+      - event: [ push , manual ]
+        branch: main
+
+  - image: chko/docker-pushrm:1
+    name: push-readme-quayio
+    environment:
+      APIKEY__QUAY_IO:
+        from_secret: quay_apikey
+      PUSHRM_TARGET: quay.io/opencloudeu/clamav-icap
+      PUSHRM_SHORT: Docker images for Clamav ICAP
+      PUSHRM_FILE: README.md
+    depends_on: build-and-push
+    when:
+      - event: [ push , manual ]
+        branch: main
