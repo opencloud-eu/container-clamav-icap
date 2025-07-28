@@ -18,10 +18,35 @@ This container provides a lightweight Debian-based image that runs [ClamAV](http
 
 ---
 
+## 🔍 Service Details
+
+The container exposes two ICAP services on port 1344:
+
+- **`avscan`** - Main antivirus scanning service
+- **`srv_clamav`** - Legacy service name (maintained for backward compatibility)
+
 ## 🚀 Usage
+
+Once the container is running, you can access the ICAP services at:
+
+- `icap://localhost:1344/avscan`
+- `icap://localhost:1344/srv_clamav`
+
+## ⚙️ Configuration Options
+
+### 🔌 Port Mapping
+By default, the service runs on port 1344. To use a different port:
+
+```bash
+docker run -d \
+  --name clamav-icap \
+  -p 8080:1344 \
+  opencloudeu/clamav-icap
+```
 
 ### 🛠 Build
 
 ```bash
 docker build -t clamav-c-icap .
+```
 
