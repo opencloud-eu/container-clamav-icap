@@ -8,7 +8,9 @@ steps:
   - image: woodpeckerci/plugin-docker-buildx:latest
     name: dryrun
     settings:
+      # renovate: datasource=repology depName=debian_12/clamav
       tags:
+        - 1.0.7
         - latest
       dockerfile: Dockerfile
       dry_run: true
@@ -25,7 +27,9 @@ steps:
   - image: woodpeckerci/plugin-docker-buildx:latest
     name: build-and-push
     settings:
+      # renovate: datasource=repology depName=debian_12/clamav
       tags:
+        - 1.0.7
         - latest
       dockerfile: Dockerfile
       http_proxy:

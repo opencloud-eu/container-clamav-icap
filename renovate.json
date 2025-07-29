@@ -6,8 +6,8 @@
   "customManagers": [
     {
       "customType": "regex",
-      "managerFilePatterns": [
-        "/^Dockerfile$/"
+      "fileMatch": [
+        "^Dockerfile$"
       ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\nARG VERSION=(?<currentValue>.*)"
@@ -15,12 +15,45 @@
     },
     {
       "customType": "regex",
-      "managerFilePatterns": [
-        "/^\\.woodpecker/[^/]+\\.yml$/"
+      "fileMatch": [
+        "^\\.woodpecker/.*\\.yml$"
       ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n\\s+tags:\\n\\s+- (?<currentValue>.*)"
       ]
+    }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^Dockerfile$"],
+      "matchStrings": [
+        "# renovate: datasource=repology depName=(?<depName>.*?)\\s*\\nARG (?<variableName>\\w+)=(?<currentValue>.*?)\\s*\\n"
+      ],
+      "datasourceTemplate": "repology",
+      "versioningTemplate": "loose"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchDatasources": ["repology"],
+      "matchPackagePatterns": ["^debian_\\d+/.*"],
+      "matchFiles": ["^Dockerfile$"],
+      "extractVersion": "^(?<version>.+)-\\d+$",
+      "versioningTemplate": "loose"
+    },
+    {
+      "matchDatasources": ["repology"],
+      "matchPackageNames": ["debian_12/clamav"],
+      "matchFiles": ["^\\.woodpecker/.*\\.yml$"],
+      "extractVersion": "^(?<version>\\d+\\.\\d+\\.\\d+)",
+      "versioningTemplate": "semver"
+    },
+    {
+      "matchDatasources": ["repology"],
+      "matchPackageNames": ["debian_12/clamav"],
+      "matchFiles": ["^Dockerfile$"],
+      "extractVersion": "^(?<version>.+)-\\d+$",
+      "versioningTemplate": "loose"
     }
   ]
 }
