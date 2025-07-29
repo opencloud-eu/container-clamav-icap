@@ -2,6 +2,9 @@ FROM debian:bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# renovate: datasource=repology depName=debian_12/clamav
+ARG CLAMAV_VERSION=1.0.7+dfsg-1~deb12u1
+
 RUN echo '#!/bin/sh\nexit 101' > /usr/sbin/policy-rc.d && chmod +x /usr/sbin/policy-rc.d
 
 RUN groupadd -r clamav && useradd -r -g clamav -s /bin/sh -d /var/lib/clamav clamav
@@ -10,7 +13,7 @@ RUN apt-get update && \
     apt-get -y upgrade && \
     apt-get install -y \
         c-icap libicapapi-dev \
-        clamav libc-icap-mod-virus-scan clamav-daemon && \
+        clamav=${CLAMAV_VERSION} libc-icap-mod-virus-scan clamav-daemon=${CLAMAV_VERSION} && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Remove HTTPProxy line from freshclam.conf which has been added automatically
