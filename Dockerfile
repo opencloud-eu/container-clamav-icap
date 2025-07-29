@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN echo '#!/bin/sh\nexit 101' > /usr/sbin/policy-rc.d && chmod +x /usr/sbin/policy-rc.d
 
-RUN groupadd -r clamav && useradd -r -g clamav -s /bin/false -d /var/lib/clamav clamav
+RUN groupadd -r clamav && useradd -r -g clamav -s /bin/sh -d /var/lib/clamav clamav
 
 RUN apt-get update && \
     apt-get -y upgrade && \
@@ -22,13 +22,14 @@ RUN sed -i '/^HTTPProxy/d' /etc/clamav/freshclam.conf
 RUN freshclam
 
 COPY ./etc /etc
-RUN mkdir -p /var/run/c-icap /var/run/clamav && \
-    chown -R c-icap:c-icap /var/run/c-icap /etc/c-icap/ && \
-    chown clamav:clamav /var/run/clamav
+RUN mkdir -p /var/run/c-icap /var/run/clamav /var/log/c-icap && \
+    chown -R clamav:clamav /var/run/clamav /var/log/c-icap /var/run/c-icap /etc/c-icap
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENV DEBIAN_FRONTEND=""
+
+USER clamav
 
 ENTRYPOINT ["/entrypoint.sh"]
