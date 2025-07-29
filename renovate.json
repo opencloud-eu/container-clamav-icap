@@ -6,12 +6,23 @@
   "customManagers": [
     {
       "customType": "regex",
+      "fileMatch": ["^Dockerfile$"],
+      "matchStrings": [
+        "FROM (?<depName>debian):(?<currentValue>bookworm-slim)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "loose"
+    },
+    {
+      "customType": "regex",
       "fileMatch": [
         "^Dockerfile$"
       ],
       "matchStrings": [
-        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\nARG VERSION=(?<currentValue>.*)"
-      ]
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s*\\nARG (?<variableName>\\w+)=?(?<currentValue>[^\\s]+)"
+      ],
+      "datasourceTemplate": "repology",
+      "versioningTemplate": "loose"
     },
     {
       "customType": "regex",
@@ -20,17 +31,9 @@
       ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n\\s+tags:\\n\\s+- (?<currentValue>.*)"
-      ]
-    }
-  ],
-  "regexManagers": [
-    {
-      "fileMatch": ["^Dockerfile$"],
-      "matchStrings": [
-        "# renovate: datasource=repology depName=(?<depName>.*?)\\s*\\nARG (?<variableName>\\w+)=(?<currentValue>.*?)\\s*\\n"
       ],
       "datasourceTemplate": "repology",
-      "versioningTemplate": "loose"
+      "versioningTemplate": "semver"
     }
   ],
   "packageRules": [
@@ -38,22 +41,19 @@
       "matchDatasources": ["repology"],
       "matchPackagePatterns": ["^debian_\\d+/.*"],
       "matchFiles": ["^Dockerfile$"],
-      "extractVersion": "^(?<version>.+)-\\d+$",
-      "versioningTemplate": "loose"
+      "extractVersion": "^(?<version>.+)-\\d+$"
     },
     {
       "matchDatasources": ["repology"],
       "matchPackageNames": ["debian_12/clamav"],
       "matchFiles": ["^\\.woodpecker/.*\\.yml$"],
-      "extractVersion": "^(?<version>\\d+\\.\\d+\\.\\d+)",
-      "versioningTemplate": "semver"
+      "extractVersion": "^(?<version>\\d+\\.\\d+\\.\\d+)"
     },
     {
       "matchDatasources": ["repology"],
       "matchPackageNames": ["debian_12/clamav"],
       "matchFiles": ["^Dockerfile$"],
-      "extractVersion": "^(?<version>.+)-\\d+$",
-      "versioningTemplate": "loose"
+      "extractVersion": "^(?<version>.+)-\\d+$"
     }
   ]
 }

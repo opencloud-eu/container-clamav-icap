@@ -15,6 +15,7 @@ This container provides a lightweight Debian-based image that runs [ClamAV](http
 - Handles headless install issues (debconf, service start)
 - Proper permissions for ClamAV and c-icap runtime
 - Simple `entrypoint.sh` for container initialization
+- The versioning follows the ClamAV version used in the base image
 
 ---
 
