@@ -3,7 +3,7 @@ FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 # renovate: datasource=repology depName=debian_12/clamav
-ARG CLAMAV_VERSION=1.0.7+dfsg-1~deb12u1
+ARG CLAMAV_VERSION=1.0.9+dfsg-1~deb12u1
 
 RUN echo '#!/bin/sh\nexit 101' > /usr/sbin/policy-rc.d && chmod +x /usr/sbin/policy-rc.d
 
