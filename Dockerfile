@@ -9,19 +9,25 @@ RUN echo '#!/bin/sh\nexit 101' > /usr/sbin/policy-rc.d && chmod +x /usr/sbin/pol
 
 RUN groupadd -r clamav && useradd -r -g clamav -s /bin/sh -d /var/lib/clamav clamav
 
-RUN apt-get update && \
+# The CI reaches the internet through an authenticated proxy, which buildx
+# exports as $http_proxy into every RUN step. clamav-freshclam's maintainer
+# scripts copy whatever they find there - credentials included - into
+# freshclam.conf, the ucf cache and the debconf database. Pass the proxy to apt
+# through its own configuration instead - not with -o, which apt would record
+# in /var/log/apt/history.log - and drop it from the environment the scripts
+# inherit. "DIRECT" is apt's way of spelling "no proxy".
+RUN printf 'Acquire::http::Proxy "%s";\nAcquire::https::Proxy "%s";\n' \
+        "${http_proxy:-DIRECT}" "${https_proxy:-${http_proxy:-DIRECT}}" > /etc/apt/apt.conf.d/99-ci-proxy && \
+    unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY && \
+    apt-get update && \
     apt-get -y upgrade && \
     apt-get install -y \
         c-icap libicapapi-dev \
         clamav=${CLAMAV_VERSION} libc-icap-mod-virus-scan clamav-daemon=${CLAMAV_VERSION} && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    apt-get clean && rm -rf /var/lib/apt/lists/* /etc/apt/apt.conf.d/99-ci-proxy
 
-# Remove HTTPProxy line from freshclam.conf which has been added automatically
-# by clamav package installation due to the woodpecker proxy configuration.
-# This line needs be removed because the container should be used in a
-# non-proxy environment.
-RUN sed -i '/^HTTPProxy/d' /etc/clamav/freshclam.conf
-
+# freshclam reads the proxy from libcurl's environment variables and never
+# writes it anywhere, so this step keeps them.
 RUN freshclam
 
 COPY ./etc /etc
