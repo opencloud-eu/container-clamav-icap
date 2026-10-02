@@ -10,7 +10,7 @@ steps:
     settings:
       # renovate: datasource=repology depName=debian_12/clamav
       tags:
-        - 1.0.7
+        - 1.4.3
         - latest
       dockerfile: Dockerfile
       dry_run: true
@@ -29,7 +29,7 @@ steps:
     settings:
       # renovate: datasource=repology depName=debian_12/clamav
       tags:
-        - 1.0.7
+        - 1.4.3
         - latest
       dockerfile: Dockerfile
       http_proxy:
