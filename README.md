@@ -35,8 +35,19 @@ Once the container is running, you can access the ICAP services at:
 
 ## ⚙️ Configuration Options
 
+### Environment Variables
+
+Following variables are available:
+- **FRESHCLAM_DISABLE** - Disable Freshclam
+- **FRESHCLAM_DATABASEMIRROR** - The mirrorserver for freshcalm to be used. Multible server are supported, they need to be sperated by space
+- **FRESHCLAM_ARGS** - Args passed to Freshclam
+- **CLAMD_DISABLE** - Disable Clamd
+- **CLAMD_ARGS** - Args passed to Clamd
+- **C_ICAP_DISABLE** - Disable c-icap
+- **C_ICAP_ARGS** - Args passed to c-icap
+
 ### 🔌 Port Mapping
-By default, the service runs on port 1344. To use a different port:
+By default, the c-icap service runs on port 1344, the clamav is also available at port 3310. To use a different port:
 
 ```bash
 docker run -d \

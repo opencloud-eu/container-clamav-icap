@@ -8,7 +8,7 @@
       "customType": "regex",
       "fileMatch": ["^Dockerfile$"],
       "matchStrings": [
-        "FROM (?<depName>debian):(?<currentValue>bookworm-slim)"
+        "FROM (?<depName>debian):(?<currentValue>13-slim)"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "loose"
@@ -45,13 +45,13 @@
     },
     {
       "matchDatasources": ["repology"],
-      "matchPackageNames": ["debian_12/clamav"],
+      "matchPackageNames": ["debian_13/clamav"],
       "matchFiles": ["^\\.woodpecker/.*\\.yml$"],
       "extractVersion": "^(?<version>\\d+\\.\\d+\\.\\d+)"
     },
     {
       "matchDatasources": ["repology"],
-      "matchPackageNames": ["debian_12/clamav"],
+      "matchPackageNames": ["debian_13/clamav"],
       "matchFiles": ["^Dockerfile$"],
       "extractVersion": "^(?<version>.+)-\\d+$"
     }
