@@ -1,9 +1,9 @@
-FROM debian:bookworm-slim
+FROM debian:13-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# renovate: datasource=repology depName=debian_12/clamav
-ARG CLAMAV_VERSION=1.4.3+dfsg-1~deb12u2
+# renovate: datasource=repology depName=debian_13/clamav
+ARG CLAMAV_VERSION=1.4.3+dfsg-1
 
 RUN echo '#!/bin/sh\nexit 101' > /usr/sbin/policy-rc.d && chmod +x /usr/sbin/policy-rc.d
 
@@ -22,9 +22,11 @@ RUN printf 'Acquire::http::Proxy "%s";\nAcquire::https::Proxy "%s";\n' \
     apt-get update && \
     apt-get -y upgrade && \
     apt-get install -y \
-        c-icap libicapapi-dev \
+        c-icap \
         clamav=${CLAMAV_VERSION} libc-icap-mod-virus-scan clamav-daemon=${CLAMAV_VERSION} && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /etc/apt/apt.conf.d/99-ci-proxy
+
+RUN echo 'TCPAddr 0.0.0.0\nTCPSocket 3310' >> /etc/clamav/clamd.conf
 
 # freshclam reads the proxy from libcurl's environment variables and never
 # writes it anywhere, so this step keeps them.
@@ -40,5 +42,7 @@ RUN chmod +x /entrypoint.sh
 ENV DEBIAN_FRONTEND=""
 
 USER clamav
+
+EXPOSE 1344 3310
 
 ENTRYPOINT ["/entrypoint.sh"]
