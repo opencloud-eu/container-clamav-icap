@@ -3,7 +3,7 @@ FROM debian:13-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 # renovate: datasource=repology depName=debian_13/clamav
-ARG CLAMAV_VERSION=1.4.3+dfsg-1
+ARG CLAMAV_VERSION=1.4.6+dfsg-1~deb13u1
 
 RUN echo '#!/bin/sh\nexit 101' > /usr/sbin/policy-rc.d && chmod +x /usr/sbin/policy-rc.d
 
